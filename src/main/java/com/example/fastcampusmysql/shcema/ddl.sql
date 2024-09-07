@@ -2,18 +2,18 @@ create table Member
 (
     id int auto_increment,
     email varchar(20) not null,
-    nickname varchar(20) not null,
-    birthday date not null,
+    nickName varchar(20) not null,
+    birth date not null,
     createdAt datetime not null,
     constraint member_id_uindex
         primary key (id)
 );
 
-create table MemberNicknameHistory
+create table MemberNickNameHistory
 (
     id int auto_increment,
     memberId int not null,
-    nickname varchar(20) not null,
+    nickName varchar(20) not null,
     createdAt datetime not null,
     constraint memberNicknameHistory_id_uindex
         primary key (id)
@@ -32,7 +32,6 @@ create table Follow
 create unique index Follow_fromMemberId_toMemberId_uindex
     on Follow (fromMemberId, toMemberId);
 
-
 create table POST
 (
     id int auto_increment,
@@ -50,5 +49,5 @@ create index POST__index_member_id
 create index POST__index_created_date
     on POST (createdDate);
 
-
-
+drop table Member;
+drop table MemberNickNameHistory;
