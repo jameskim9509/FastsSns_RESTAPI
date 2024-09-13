@@ -24,6 +24,16 @@ public class PostService {
     return PostDto.fromPost(post);
   }
 
+  // for Test
+  public void bulkInsert(List<PostDto> postDtos)
+  {
+    List<Post> posts = postDtos.stream()
+        .map(PostDto::toPost)
+        .collect(Collectors.toList());
+
+    postRepository.saveAll(posts);
+  }
+
   public List<PostCountDto> getPostCountByDate(PostCountInput input)
   {
     return postRepository

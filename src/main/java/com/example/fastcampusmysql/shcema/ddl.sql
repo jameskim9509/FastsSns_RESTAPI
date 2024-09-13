@@ -43,11 +43,20 @@ create table POST
         primary key (id)
 );
 
-create index POST__index_member_id
-    on POST (memberId);
+--create index POST__index_member_id
+--    on POST (memberId);
 
-create index POST__index_created_date
-    on POST (createdDate);
+CREATE INDEX index_member_id
+    ON Post (memberId);
+
+SHOW INDEX FROM Post;
+ANALYZE TABLE Post;
+
+--create index POST__index_created_date
+--    on POST (createdDate);
+
+CREATE INDEX index_created_date
+    ON Post (createdDate);
 
 drop table Member;
 drop table MemberNickNameHistory;

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 class MemberRepositoryTest {
 
   EasyRandom easyRandom = new EasyRandom();
+
   @Test
   void save() {
     IntStream.range(0, 10)

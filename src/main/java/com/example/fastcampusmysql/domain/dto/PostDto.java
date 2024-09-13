@@ -13,4 +13,14 @@ public record PostDto(Long id, Long memberId, String contents, LocalDate created
         post.getCreatedDate()
     );
   }
+
+  public static Post toPost(PostDto postDto)
+  {
+    return Post.builder()
+//        .id(postDto.id())
+        .memberId(postDto.memberId())
+        .contents(postDto.contents())
+        .createdDate(postDto.createdDate)
+        .build();
+  }
 }
