@@ -1,17 +1,20 @@
 package com.example.fastcampusmysql.repository;
 
+import com.example.fastcampusmysql.domain.dto.CursorPostDto;
 import com.example.fastcampusmysql.domain.dto.PostCountDto;
-import com.example.fastcampusmysql.domain.dto.PostDto;
 import com.example.fastcampusmysql.domain.entity.Post;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.IntFunction;
-import java.util.stream.Collectors;
 import javax.sql.DataSource;
-import javax.swing.text.html.Option;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -93,6 +96,128 @@ public class PostRepository {
     );
   }
 
+  public List<Post> getPostsByCursor(Long memberId, Integer key, Integer size)
+  {
+    String sql = "";
+    if(key == null) {
+      sql = """
+          SELECT *
+          FROM Post
+          WHERE memberId=:memberId
+          ORDER BY id DESC
+          LIMIT :size
+          """;
+    } else {
+      sql = """
+          SELECT *
+          FROM Post
+          WHERE memberId=:memberId AND id<:key
+          ORDER BY id DESC
+          LIMIT :size
+          """;
+    }
+
+    SqlParameterSource parameterSource = new MapSqlParameterSource()
+        .addValue("memberId", memberId)
+        .addValue("key", key)
+        .addValue("size", size);
+
+    RowMapper<Post> rowMapper = (rs, rnum) ->
+        Post.builder()
+            .id(rs.getLong("id"))
+            .memberId(rs.getLong("memberId"))
+            .contents(rs.getString("contents"))
+            .createdDate(rs.getObject("createdDate", LocalDate.class))
+            .createdAt(rs.getObject("createdAt", LocalDateTime.class))
+            .build();
+
+    return namedParameterJdbcTemplate.query(sql, parameterSource, rowMapper);
+  }
+
+  public PageImpl<Post> getPostsByPage(Long memberId, Pageable pageable)
+  {
+    String sort = "";
+    if(pageable.getSort().isEmpty()) sort = "id DESC";
+    else {
+      Iterator<Order> orderIterator = pageable.getSort().iterator();
+      List<String> orderStringList = new ArrayList<>();
+      while (orderIterator.hasNext()) {
+        Order order = orderIterator.next();
+        orderStringList.add(order.getProperty() + " " + order.getDirection());
+      }
+      sort = String.join(", ", orderStringList);
+    }
+
+    // ordinary pagination sql query
+//    String sql = String.format(
+//        """
+//        SELECT *
+//        FROM Post
+//        WHERE memberId=:memberId
+//        ORDER BY %s
+//        LIMIT :size
+//        OFFSET :offset
+//        """,
+//        sort
+//    );
+
+    // covering index
+    String sql = String.format(
+          """
+          SELECT *
+          FROM (SELECT id
+                FROM Post
+                WHERE memberId=:memberId
+                LIMIT :size
+                ORDER BY id DESC
+                OFFSET :offset) as temp
+          JOIN Post as p
+          ON p.id = temp.id
+        """,
+        sort
+    );
+
+    System.out.println(sort);
+
+    SqlParameterSource parameterSource = new MapSqlParameterSource()
+        .addValue("memberId", memberId)
+        .addValue("sort", sort)
+        .addValue("offset", pageable.getOffset())
+        .addValue("size", pageable.getPageSize());
+
+    RowMapper<Post> rowMapper = (rs, rnum) ->
+        Post.builder()
+            .id(rs.getLong("id"))
+            .memberId( rs.getLong("memberId"))
+            .contents(rs.getString("contents"))
+            .createdDate(rs.getObject("createdDate", LocalDate.class))
+            .createdAt(rs.getObject("createdAt", LocalDateTime.class))
+            .build();
+
+    List<Post> posts = namedParameterJdbcTemplate.query(sql, parameterSource, rowMapper);
+    return new PageImpl(
+        posts,
+        pageable,
+        getAllCountById(memberId)
+    );
+  }
+
+  public Long getAllCountById(Long memberId)
+  {
+    String sql = """
+        SELECT count(*) as count
+        FROM Post
+        WHERE memberId=:memberId
+        """;
+
+    SqlParameterSource parameterSource = new MapSqlParameterSource()
+        .addValue("memberId", memberId);
+
+    RowMapper<Long> rowMapper = (rs, rnum) -> rs.getLong("count");
+
+    return namedParameterJdbcTemplate.queryForObject(sql, parameterSource, rowMapper);
+  }
+
   public Optional<List<PostCountDto>> getPosts(Long memberId, LocalDate startDate, LocalDate endDate)
   {
     // 멤버 아이디 비정규화
@@ -103,7 +228,6 @@ public class PostRepository {
         GROUP BY createdDate
         ORDER BY createdDate DESC
         """;
-    // Index 필요함
 
     SqlParameterSource parameterSource = new MapSqlParameterSource()
         .addValue("memberId", memberId)

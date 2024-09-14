@@ -2,7 +2,6 @@ package com.example.fastcampusmysql.repository;
 
 import com.example.fastcampusmysql.domain.entity.Post;
 import com.example.fastcampusmysql.repository.fixture.PostFixture;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Supplier;
