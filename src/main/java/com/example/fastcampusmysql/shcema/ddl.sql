@@ -43,20 +43,25 @@ create table POST
         primary key (id)
 );
 
---create index POST__index_member_id
---    on POST (memberId);
-
 CREATE INDEX index_member_id
     ON Post (memberId);
 
 SHOW INDEX FROM Post;
 ANALYZE TABLE Post;
 
---create index POST__index_created_date
---    on POST (createdDate);
-
 CREATE INDEX index_created_date
     ON Post (createdDate);
 
+create table TimeLine
+(
+    id int auto_increment,
+    memberId int not null,
+    postId int not null,
+    createdAt datetime not null,
+    constraint TimeLine_id_uindex
+      primary key(id)
+)
+
 drop table Member;
 drop table MemberNickNameHistory;
+drop table TimeLine;

@@ -8,10 +8,10 @@ update Post set `createdDate`= date_format('2024-9-8', '%Y-%m-%d') where id = 1 
 
 select * from Post where memberId=1 limit 3 offset 0 order by id desc;
 
-truncate Member;
-truncate MemberNickNameHistory;
-truncate Follow;
-truncate Post;
+delete from Member;
+delete from MemberNickNameHistory;
+delete from Follow;
+delete from Post;
 
 describe Member;
 describe MemberNickNameHistory;

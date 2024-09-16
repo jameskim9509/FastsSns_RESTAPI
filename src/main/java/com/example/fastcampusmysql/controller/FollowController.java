@@ -22,9 +22,27 @@ public class FollowController {
     return followApplication.follow(input);
   }
 
-  @GetMapping("/{memberId}")
+  @GetMapping("/follwings/{memberId}")
   public Object getFollowings(@PathVariable("memberId") Long memberId)
   {
     return followApplication.getFollowings(memberId);
+  }
+
+  @GetMapping("/followers/{memberId}")
+  public Object getFollowers(@PathVariable("memberId") Long memberId)
+  {
+    return followApplication.getFollowers(memberId);
+  }
+
+  @GetMapping("/posts/pull/{memberId}")
+  public Object getPostsOfFollowersInPullModel(@PathVariable("memberId") Long memberId)
+  {
+    return followApplication.getPostsOfFollowersInPullModel(memberId);
+  }
+
+  @GetMapping("/posts/push/{memberId}")
+  public Object getPostsOfFollowersInPushModel(@PathVariable("memberId") Long memberId)
+  {
+    return followApplication.getPostsOfFollowersInPushModel(memberId);
   }
 }

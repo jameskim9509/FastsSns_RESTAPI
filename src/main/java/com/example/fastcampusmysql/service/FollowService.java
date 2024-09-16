@@ -23,9 +23,21 @@ public class FollowService {
 
   public List<Long> getFollowings(Long memberId)
   {
-    List<Follow> follows = followRepository.findAllById(memberId);
+    List<Follow> follows = followRepository.findAllByToMemberId(memberId);
     if(follows.isEmpty()) throw new IllegalArgumentException();
 
-    return follows.stream().map(f -> f.getFromMemberId()).collect(Collectors.toList());
+    return follows.stream()
+        .map(f -> f.getFromMemberId())
+        .collect(Collectors.toList());
+  }
+
+  public List<Long> getFollowers(Long memberId)
+  {
+    List<Follow> follows = followRepository.findAllByFromMemberId(memberId);
+    if(follows.isEmpty()) throw new IllegalArgumentException();
+
+    return follows.stream()
+        .map(f -> f.getToMemberId())
+        .collect(Collectors.toList());
   }
 }

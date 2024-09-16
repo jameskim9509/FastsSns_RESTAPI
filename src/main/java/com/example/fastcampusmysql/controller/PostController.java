@@ -1,5 +1,6 @@
 package com.example.fastcampusmysql.controller;
 
+import com.example.fastcampusmysql.application.PostApplication;
 import com.example.fastcampusmysql.domain.dto.Input.CursorPostInput;
 import com.example.fastcampusmysql.domain.dto.Input.PostCountInput;
 import com.example.fastcampusmysql.domain.dto.Input.PostInput;
@@ -18,18 +19,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/posts")
 public class PostController {
-  private final PostService postService;
+  private final PostApplication postApplication;
 
   @PostMapping
   public Object post(@RequestBody PostInput postInput)
   {
-    return postService.post(postInput);
+    return postApplication.post(postInput);
   }
 
   @GetMapping("/count")
   public Object getPosts(@ModelAttribute  PostCountInput postCountInput)
   {
-    return postService.getPostCountByDate(postCountInput);
+    return postApplication.getPostCountByDate(postCountInput);
   }
 
   @GetMapping("/page/{memberId}")
@@ -38,7 +39,7 @@ public class PostController {
       Pageable pageable // vs @ModelAttribute Pageable pageable
   )
   {
-    return postService.getPostsByPage(memberId, pageable);
+    return postApplication.getPostsByPage(memberId, pageable);
   }
 
   @GetMapping("/cursor/{memberId}")
@@ -47,6 +48,6 @@ public class PostController {
       @ModelAttribute CursorPostInput cursorPostInput
   )
   {
-    return postService.getPostsByCursor(memberId, cursorPostInput.key(), cursorPostInput.size());
+    return postApplication.getPostsByCursor(memberId, cursorPostInput);
   }
 }

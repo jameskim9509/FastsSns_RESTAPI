@@ -52,10 +52,29 @@ public class FollowRepository {
         .build();
   }
 
-  public List<Follow> findAllById(Long memberId)
+  public List<Follow> findAllByToMemberId(Long memberId)
   {
     String sql = """
         SELECT * FROM FOLLOW WHERE toMemberId=:memberId
+        """;
+
+    RowMapper<Follow> rowMapper = (rs, rnum) -> Follow.builder()
+        .id(rs.getLong("id"))
+        .fromMemberId(rs.getLong("fromMemberId"))
+        .toMemberId(rs.getLong("toMemberId"))
+        .createdAt(rs.getObject("createdAt", LocalDateTime.class))
+        .build();
+
+    SqlParameterSource parameterSource = new MapSqlParameterSource()
+        .addValue("memberId", memberId);
+
+    return namedParameterJdbcTemplate.query(sql, parameterSource, rowMapper);
+  }
+
+  public List<Follow> findAllByFromMemberId(Long memberId)
+  {
+    String sql = """
+        SELECT * FROM Follow WHERE fromMemberId=:memberId
         """;
 
     RowMapper<Follow> rowMapper = (rs, rnum) -> Follow.builder()

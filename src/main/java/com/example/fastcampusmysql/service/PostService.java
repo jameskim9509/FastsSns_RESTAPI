@@ -38,6 +38,20 @@ public class PostService {
     postRepository.saveAll(posts);
   }
 
+  public List<PostDto> getPostsByIdsOrderByIdDESC(List<Long> ids)
+  {
+    return postRepository.getPostsByIdsOrderByIdDESC(ids).stream()
+        .map(PostDto::fromPost)
+        .collect(Collectors.toList());
+  }
+
+  public List<PostDto> getPostsByMemberList(List<Long> memberIds)
+  {
+    return postRepository.getPostsByMemberIds(memberIds).stream()
+        .map(PostDto::fromPost)
+        .collect(Collectors.toList());
+  }
+
   public List<PostCountDto> getPostCountByDate(PostCountInput input)
   {
     return postRepository
