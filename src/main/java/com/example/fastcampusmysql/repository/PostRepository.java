@@ -24,7 +24,6 @@ import org.springframework.stereotype.Repository;
 public class PostRepository {
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-
   @Autowired
   public PostRepository(DataSource dataSource)
   {

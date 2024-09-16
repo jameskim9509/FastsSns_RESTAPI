@@ -37,8 +37,9 @@ public class Post {
     this.version = version == null ? 0 : version;
   }
 
-  public void increaseLikeCount()
+  public Post setLikeCount(Long likeCount)
   {
-    this.likeCount++;
+    this.likeCount = likeCount;
+    return this;
   }
 }

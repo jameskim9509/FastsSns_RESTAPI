@@ -6,6 +6,7 @@ import com.example.fastcampusmysql.domain.dto.Input.PostInput;
 import com.example.fastcampusmysql.domain.dto.PostCountDto;
 import com.example.fastcampusmysql.domain.dto.PostDto;
 import com.example.fastcampusmysql.domain.entity.Post;
+import com.example.fastcampusmysql.repository.PostLikeRepository;
 import com.example.fastcampusmysql.repository.PostRepository;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PostService {
   final PostRepository postRepository;
+  final PostLikeRepository postLikeRepository;
 
   public PostDto post(PostInput input)
   {
@@ -35,6 +37,16 @@ public class PostService {
         .collect(Collectors.toList());
 
     postRepository.saveAll(posts);
+  }
+
+  public PostDto getPostById(Long id)
+  {
+    return PostDto.fromPost(
+        postRepository.getPostById(id, false)
+            .orElseThrow(IllegalArgumentException::new)
+            // post를 조회할 때마다 count 쿼리 발생
+            .setLikeCount(postLikeRepository.count(id))
+    );
   }
 
   public List<PostDto> getPostsByIdsOrderByIdDESC(List<Long> ids)
@@ -79,7 +91,7 @@ public class PostService {
   public PostDto increaseLikeCountByWriteLock(Long postId)
   {
     Post post = postRepository.getPostById(postId, true).orElseThrow(IllegalArgumentException::new);
-    post.increaseLikeCount();
+    post.setLikeCount(post.getLikeCount() + 1);
     return PostDto.fromPost(
         postRepository.update(post).orElseThrow(RuntimeException::new)
     );
@@ -89,7 +101,7 @@ public class PostService {
   public PostDto increaseLikeCountByOptimisticLock(Long postId)
   {
     Post post = postRepository.getPostById(postId, false).orElseThrow(IllegalArgumentException::new);
-    post.increaseLikeCount();;
+    post.setLikeCount(post.getLikeCount() + 1);;
     return PostDto.fromPost(
         postRepository.update(post).orElseThrow(RuntimeException::new)
     );

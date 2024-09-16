@@ -65,6 +65,18 @@ create table TimeLine
       primary key(id)
 )
 
+create table PostLike
+(
+    id int auto_increment,
+    memberId int not null,
+    postId int not null,
+    createdAt datetime not null,
+    constraint TimeLine_id_uindex
+      primary key(id),
+    constraint PostLike_Once
+      UNIQUE(memberId, postId)
+)
+
 drop table Member;
 drop table MemberNickNameHistory;
 drop table TimeLine;

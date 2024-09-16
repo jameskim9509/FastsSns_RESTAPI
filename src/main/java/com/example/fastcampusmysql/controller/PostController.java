@@ -4,6 +4,7 @@ import com.example.fastcampusmysql.application.PostApplication;
 import com.example.fastcampusmysql.domain.dto.Input.CursorPostInput;
 import com.example.fastcampusmysql.domain.dto.Input.PostCountInput;
 import com.example.fastcampusmysql.domain.dto.Input.PostInput;
+import com.example.fastcampusmysql.domain.dto.Input.PostLikeInput;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -65,5 +66,15 @@ public class PostController {
   )
   {
     return postApplication.increaseLikeCountByOptimisticLock(postId);
+  }
+
+  @PostMapping("/like")
+  public Object postLike(
+      @RequestBody PostLikeInput postLikeInput
+  )
+  {
+    return postApplication.postLike(
+        postLikeInput.memberId(), postLikeInput.postId()
+    );
   }
 }
