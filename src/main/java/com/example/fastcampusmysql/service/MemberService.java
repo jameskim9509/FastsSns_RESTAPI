@@ -7,6 +7,7 @@ import com.example.fastcampusmysql.repository.MemberNickNameHistoryRepository;
 import com.example.fastcampusmysql.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -37,6 +38,7 @@ public class MemberService {
     return MemberDto.fromMember(member);
   }
 
+  @Transactional
   public MemberDto changeNickName(Long id, String nickName)
   {
     Member member = memberRepository.changeNickName(id, nickName);

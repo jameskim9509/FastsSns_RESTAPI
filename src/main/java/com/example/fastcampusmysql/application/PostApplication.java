@@ -50,4 +50,14 @@ public class PostApplication {
         cursorPostInput.size()
     );
   }
+
+  public PostDto increaseLikeCountByWriteLock(Long postId)
+  {
+    return postService.increaseLikeCountByWriteLock(postId);
+  }
+
+  public PostDto increaseLikeCountByOptimisticLock(Long postId)
+  {
+    return postService.increaseLikeCountByOptimisticLock(postId);
+  }
 }

@@ -24,10 +24,47 @@ import org.springframework.stereotype.Repository;
 public class PostRepository {
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
+
   @Autowired
   public PostRepository(DataSource dataSource)
   {
      namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+  }
+
+  public Optional<Post> update(Post post)
+  {
+    String sql = """
+        UPDATE Post
+        SET memberId=:memberId,
+            contents=:contents,
+            createdDate=:createdDate,
+            likeCount=:likeCount, 
+            version=:version+1 
+        WHERE id=:id AND version=:version
+        """;
+
+    SqlParameterSource parameterSource = new MapSqlParameterSource()
+        .addValue("memberId", post.getMemberId())
+        .addValue("contents", post.getContents())
+        .addValue("createdDate", post.getCreatedDate())
+        .addValue("likeCount", post.getLikeCount())
+        .addValue("version", post.getVersion())
+        .addValue("id", post.getId());
+
+    int rowNum = namedParameterJdbcTemplate.update(sql, parameterSource);
+
+    if(rowNum > 0)
+      return Optional.of(
+          Post.builder()
+            .id(post.getId())
+            .memberId(post.getMemberId())
+            .contents(post.getContents())
+            .createdDate(post.getCreatedDate())
+            .createdAt(post.getCreatedAt())
+            .likeCount(post.getLikeCount())
+            .build()
+      );
+    else return Optional.ofNullable(null);
   }
 
   public Post save(Long memberId, String contents)
@@ -38,14 +75,18 @@ public class PostRepository {
         .build();
 
     String sql = """
-        INSERT INTO POST(memberId, contents, createdDate, createdAt) VALUES(:memberId, :contents, :createdDate, :createdAt)
+        INSERT INTO 
+        POST(memberId, contents, createdDate, createdAt, likeCount, version) 
+        VALUES(:memberId, :contents, :createdDate, :createdAt, :likeCount, :version)
         """;
 
     SqlParameterSource parameterSource = new MapSqlParameterSource()
         .addValue("memberId", post.getMemberId())
         .addValue("contents", post.getContents())
         .addValue("createdDate", post.getCreatedDate())
-        .addValue("createdAt", post.getCreatedAt());
+        .addValue("createdAt", post.getCreatedAt())
+        .addValue("likeCount", post.getLikeCount())
+        .addValue("version", post.getVersion());
 
     GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
     namedParameterJdbcTemplate.update(sql, parameterSource, keyHolder);
@@ -56,6 +97,8 @@ public class PostRepository {
         .contents(post.getContents())
         .createdDate(post.getCreatedDate())
         .createdAt(post.getCreatedAt())
+        .likeCount(post.getLikeCount())
+        .version(post.getVersion())
         .build();
   }
 
@@ -63,7 +106,9 @@ public class PostRepository {
   public void saveAll(List<Post> posts)
   {
     String sql = """
-        INSERT INTO POST(memberId, contents, createdDate, createdAt) VALUES(:memberId, :contents, :createdDate, :createdAt)
+        INSERT INTO 
+        POST(memberId, contents, createdDate, createdAt, likeCount, version) 
+        VALUES(:memberId, :contents, :createdDate, :createdAt, :likeCount, :version)
         """;
 
     MapSqlParameterSource[] batchArgs = posts.stream()
@@ -72,6 +117,8 @@ public class PostRepository {
                 .addValue("contents", p.getContents())
                 .addValue("createdDate", p.getCreatedDate())
                 .addValue("createdAt", p.getCreatedAt())
+                .addValue("likeCount", p.getLikeCount())
+                .addValue("version", p.getVersion())
         ).toArray(MapSqlParameterSource[]::new);
 
     namedParameterJdbcTemplate.batchUpdate(sql, batchArgs);
@@ -87,10 +134,42 @@ public class PostRepository {
             .contents(rs.getString("contents"))
             .createdDate(rs.getObject("createdDate", LocalDate.class))
             .createdAt(rs.getObject("createdAt", LocalDateTime.class))
+            .likeCount(rs.getLong("likeCount"))
+            .version(rs.getLong("version"))
             .build();
 
     return Optional.ofNullable(
         namedParameterJdbcTemplate.query(sql, parameterSource, rowMapper)
+    );
+  }
+
+  public Optional<Post> getPostById(Long id, Boolean isWriteLock)
+  {
+    String sql =
+        """
+        SELECT *
+        FROM Post
+        WHERE id=:id 
+        """;
+
+    if(isWriteLock) sql += "FOR UPDATE";
+
+    SqlParameterSource parameterSource = new MapSqlParameterSource()
+        .addValue("id", id);
+
+    RowMapper<Post> rowMapper = (rs, rnum) ->
+        Post.builder()
+            .id(rs.getLong("id"))
+            .memberId(rs.getLong("memberId"))
+            .contents(rs.getString("contents"))
+            .createdDate(rs.getObject("createdDate", LocalDate.class))
+            .createdAt(rs.getObject("createdAt", LocalDateTime.class))
+            .likeCount(rs.getLong("likeCount"))
+            .version(rs.getLong("version"))
+            .build();
+
+    return Optional.ofNullable(
+        namedParameterJdbcTemplate.queryForObject(sql, parameterSource, rowMapper)
     );
   }
 
@@ -113,6 +192,8 @@ public class PostRepository {
             .contents(rs.getString("contents"))
             .createdDate(rs.getObject("createdDate", LocalDate.class))
             .createdAt(rs.getObject("createdAt", LocalDateTime.class))
+            .likeCount(rs.getLong("likeCount"))
+            .version(rs.getLong("version"))
             .build();
 
     return namedParameterJdbcTemplate.query(sql, parameterSource, rowMapper);
@@ -136,6 +217,8 @@ public class PostRepository {
             .contents(rs.getString("contents"))
             .createdDate(rs.getObject("createdDate", LocalDate.class))
             .createdAt(rs.getObject("createdAt", LocalDateTime.class))
+            .likeCount(rs.getLong("likeCount"))
+            .version(rs.getLong("version"))
             .build();
 
     return namedParameterJdbcTemplate.query(sql, parameterSource, rowMapper);
@@ -174,6 +257,8 @@ public class PostRepository {
             .contents(rs.getString("contents"))
             .createdDate(rs.getObject("createdDate", LocalDate.class))
             .createdAt(rs.getObject("createdAt", LocalDateTime.class))
+            .likeCount(rs.getLong("likeCount"))
+            .version(rs.getLong("version"))
             .build();
 
     return namedParameterJdbcTemplate.query(sql, parameterSource, rowMapper);
@@ -234,6 +319,8 @@ public class PostRepository {
             .contents(rs.getString("contents"))
             .createdDate(rs.getObject("createdDate", LocalDate.class))
             .createdAt(rs.getObject("createdAt", LocalDateTime.class))
+            .likeCount(rs.getLong("likeCount"))
+            .version(rs.getLong("version"))
             .build();
 
     List<Post> posts = namedParameterJdbcTemplate.query(sql, parameterSource, rowMapper);

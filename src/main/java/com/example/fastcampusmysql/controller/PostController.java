@@ -4,13 +4,13 @@ import com.example.fastcampusmysql.application.PostApplication;
 import com.example.fastcampusmysql.domain.dto.Input.CursorPostInput;
 import com.example.fastcampusmysql.domain.dto.Input.PostCountInput;
 import com.example.fastcampusmysql.domain.dto.Input.PostInput;
-import com.example.fastcampusmysql.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,5 +49,21 @@ public class PostController {
   )
   {
     return postApplication.getPostsByCursor(memberId, cursorPostInput);
+  }
+
+  @PutMapping("/like/lock/write/{postId}")
+  public Object increaseLikeCountByWriteLock(
+      @PathVariable("postId") Long postId
+  )
+  {
+    return postApplication.increaseLikeCountByWriteLock(postId);
+  }
+
+  @PutMapping("/like/lock/optimistic/{postId}")
+  public Object increaseLikeCountByOptimisticLock(
+      @PathVariable("postId") Long postId
+  )
+  {
+    return postApplication.increaseLikeCountByOptimisticLock(postId);
   }
 }

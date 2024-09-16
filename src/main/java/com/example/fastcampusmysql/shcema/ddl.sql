@@ -46,6 +46,9 @@ create table POST
 CREATE INDEX index_member_id
     ON Post (memberId);
 
+ALTER TABLE Post ADD likeCount int;
+ALTER TABLE Post ADD version int default 0;
+
 SHOW INDEX FROM Post;
 ANALYZE TABLE Post;
 

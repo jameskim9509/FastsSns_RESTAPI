@@ -8,13 +8,12 @@ import com.example.fastcampusmysql.domain.dto.PostDto;
 import com.example.fastcampusmysql.domain.entity.Post;
 import com.example.fastcampusmysql.repository.PostRepository;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -74,5 +73,25 @@ public class PostService {
         : key-posts.size();
 
     return new CursorPostDto(nextKey, posts);
+  }
+
+  @Transactional // AutoCommit을 false로 만들고 하나의 트랜잭션으로 취급 o
+  public PostDto increaseLikeCountByWriteLock(Long postId)
+  {
+    Post post = postRepository.getPostById(postId, true).orElseThrow(IllegalArgumentException::new);
+    post.increaseLikeCount();
+    return PostDto.fromPost(
+        postRepository.update(post).orElseThrow(RuntimeException::new)
+    );
+  }
+
+  @Transactional // for Rollback (예외 발생시)
+  public PostDto increaseLikeCountByOptimisticLock(Long postId)
+  {
+    Post post = postRepository.getPostById(postId, false).orElseThrow(IllegalArgumentException::new);
+    post.increaseLikeCount();;
+    return PostDto.fromPost(
+        postRepository.update(post).orElseThrow(RuntimeException::new)
+    );
   }
 }
